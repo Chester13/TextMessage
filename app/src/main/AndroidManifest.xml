@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/ic_launcher_test"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Target of the notification's contentIntent. Launched only through a
+            PendingIntent created by this app, so it does not need to be exported.
+            singleTop + onNewIntent keeps one instance and refreshes it on each
+            open, which makes repeated taps easy to observe.
+        -->
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:label="@string/chat_title" />
+
+        <receiver
+            android:name=".ReplyReceiver"
+            android:exported="false" />
+
+    </application>
+</manifest>

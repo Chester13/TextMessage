@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- ── Conversation ── -->
+
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/section_conversation" />
+
+        <EditText
+            android:id="@+id/et_sender"
+            style="@style/Field"
+            android:hint="@string/hint_sender"
+            android:text="@string/default_sender" />
+
+        <EditText
+            android:id="@+id/et_group"
+            style="@style/Field"
+            android:hint="@string/hint_group" />
+
+        <EditText
+            android:id="@+id/et_title"
+            style="@style/Field"
+            android:hint="@string/hint_title" />
+
+        <EditText
+            android:id="@+id/et_message"
+            style="@style/Field"
+            android:hint="@string/hint_message"
+            android:text="@string/default_message" />
+
+        <CheckBox
+            android:id="@+id/cb_autonumber"
+            style="@style/Toggle"
+            android:checked="true"
+            android:text="@string/opt_autonumber" />
+
+        <!-- ── Avatar sources ── -->
+
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/section_avatar" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_avatar" />
+
+        <CheckBox
+            android:id="@+id/cb_large_icon"
+            style="@style/Toggle"
+            android:checked="true"
+            android:text="@string/opt_large_icon" />
+
+        <CheckBox
+            android:id="@+id/cb_person_icon"
+            style="@style/Toggle"
+            android:checked="false"
+            android:text="@string/opt_person_icon" />
+
+        <!-- ── Open-the-app intent ── -->
+
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/section_intent" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_intent" />
+
+        <CheckBox
+            android:id="@+id/cb_content_intent"
+            style="@style/Toggle"
+            android:checked="true"
+            android:text="@string/opt_content_intent" />
+
+        <TextView
+            style="@style/Hint"
+            android:layout_marginTop="8dp"
+            android:text="@string/opt_creator_bal" />
+
+        <Spinner
+            android:id="@+id/sp_creator_bal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" />
+
+        <!-- ── Direct Reply ── -->
+
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/section_reply" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_reply" />
+
+        <CheckBox
+            android:id="@+id/cb_reply"
+            style="@style/Toggle"
+            android:checked="true"
+            android:text="@string/opt_reply" />
+
+        <CheckBox
+            android:id="@+id/cb_cancel_after_reply"
+            style="@style/Toggle"
+            android:checked="false"
+            android:text="@string/opt_cancel_after_reply" />
+
+        <!-- ── Posting ── -->
+
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/section_post" />
+
+        <Button
+            android:id="@+id/btn_post"
+            style="@style/Action"
+            android:text="@string/btn_post" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_repost" />
+
+        <CheckBox
+            android:id="@+id/cb_bump_time"
+            style="@style/Toggle"
+            android:checked="false"
+            android:text="@string/opt_bump_time" />
+
+        <Button
+            android:id="@+id/btn_repost"
+            style="@style/Action"
+            android:text="@string/btn_repost" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/et_delay"
+                android:layout_width="72dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_delay"
+                android:inputType="number"
+                android:text="@string/default_delay" />
+
+            <Button
+                android:id="@+id/btn_repost_delayed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/btn_repost_delayed" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_cancel"
+            style="@style/Action"
+            android:text="@string/btn_cancel" />
+
+        <Button
+            android:id="@+id/btn_reset"
+            style="@style/Action"
+            android:text="@string/btn_reset" />
+
+        <Button
+            android:id="@+id/btn_reset_all"
+            style="@style/Action"
+            android:text="@string/btn_reset_all" />
+
+        <!-- ── Observed events ── -->
+
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/section_log" />
+
+        <Button
+            android:id="@+id/btn_clear_log"
+            style="@style/Action"
+            android:text="@string/btn_clear_log" />
+
+        <TextView
+            android:id="@+id/tv_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="monospace"
+            android:textSize="11sp"
+            android:textIsSelectable="true" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,44 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 36
+    namespace "chezz.testmessage"
+
+    defaultConfig {
+        applicationId "chezz.testmessage"
+        minSdkVersion 29
+        // Must stay >= 34: on Android 14+ a PendingIntent creator with
+        // targetSdk >= 34 no longer grants background-activity-start privileges
+        // by default. Lowering this would silently hide the very behaviour this
+        // app exists to reproduce.
+        targetSdkVersion 36
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Reuse the debug key so `assembleRelease` works without a keystore.
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
+}
+
+// No AndroidX: notifications are built with the framework APIs directly so the
+// resulting extras layout is exactly what a real messaging app produces, with
+// no NotificationCompat version differences in the way.
+dependencies {
+}

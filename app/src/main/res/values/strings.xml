@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TestMessage</string>
+
+    <string name="channel_name">Test messages</string>
+    <string name="channel_desc">Synthetic chat notifications for testing notification readers</string>
+    <string name="reply_label">Reply</string>
+
+    <!-- Conversation -->
+    <string name="section_conversation">Conversation</string>
+    <string name="hint_sender">Sender name</string>
+    <string name="default_sender">Alice</string>
+    <string name="hint_group">Group name — leave empty for a 1:1 chat</string>
+    <string name="hint_title">EXTRA_TITLE override — empty = auto</string>
+    <string name="hint_message">Message text</string>
+    <string name="default_message">Test message</string>
+    <string name="opt_autonumber">Append a counter to each new message</string>
+
+    <!-- Avatar -->
+    <string name="section_avatar">Avatar source</string>
+    <string name="help_avatar">Two places a chat app can put the sender picture. Turn on one at a time to see which one the reading app picks up: blue L = largeIcon, orange P = Person icon.</string>
+    <string name="opt_large_icon">largeIcon (blue \"L\")</string>
+    <string name="opt_person_icon">MessagingStyle Person icon (orange \"P\")</string>
+
+    <!-- contentIntent -->
+    <string name="section_intent">Open-the-chat intent</string>
+    <string name="help_intent">The intent an \"open original app\" button fires. On Android 14+ both the creator and the sender must allow the background activity start; the picker below controls the creator half. Android 16 replaced ALLOWED with two narrower modes, so all three are offered — anything the device is too old for is downgraded and noted in the event log.</string>
+    <string name="opt_content_intent">Attach contentIntent</string>
+    <string name="opt_creator_bal">Creator background-activity-start mode</string>
+
+    <!-- Reply -->
+    <string name="section_reply">Direct Reply</string>
+    <string name="help_reply">Adds a RemoteInput action. Replies land in the event log below, which also records whether the notification was still showing at the time.</string>
+    <string name="opt_reply">Attach reply action</string>
+    <string name="opt_cancel_after_reply">Cancel the notification after a reply arrives</string>
+
+    <!-- Posting -->
+    <string name="section_post">Post</string>
+    <string name="btn_post">Post new message</string>
+    <string name="help_repost">Re-posting keeps the same notification id and the same message list — the refresh pattern that trips duplicate detection in reading apps.</string>
+    <string name="opt_bump_time">Give the unchanged message a fresh timestamp on re-post</string>
+    <string name="btn_repost">Re-post unchanged (now)</string>
+    <string name="hint_delay">sec</string>
+    <string name="default_delay">20</string>
+    <string name="btn_repost_delayed">Re-post unchanged after delay</string>
+    <string name="btn_cancel">Cancel notification (keep conversation)</string>
+    <string name="btn_reset">Reset this conversation</string>
+    <string name="btn_reset_all">Reset all conversations</string>
+
+    <!-- Log -->
+    <string name="section_log">Events</string>
+    <string name="btn_clear_log">Clear events</string>
+
+    <!-- Chat screen -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_opened">contentIntent opened</string>
+    <string name="chat_explain">Reaching this screen means the intent was allowed to launch. If a reading app\'s open button does nothing, the launch was blocked before it got here.</string>
+    <string name="chat_back">Back</string>
+
+    <!-- Runtime messages -->
+    <string name="need_notification_permission">Notification permission is required to post test notifications</string>
+    <string name="delay_scheduled">Re-post scheduled in %1$d s</string>
+</resources>
