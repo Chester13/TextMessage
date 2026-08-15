@@ -63,6 +63,12 @@ result is never caused silently by an unrecognised constant.
 to the event log along with whether the notification was still showing when the
 reply arrived.
 
+**Backdate** — dates the message into the past while the notification still
+posts now. A reader that stamps messages with the arrival time cannot tell the
+difference; one that uses the sender's time will place the message earlier, so
+this is how to test which of the two a reader does, and how it treats a message
+that predates the current bubble session.
+
 **Post** — `Post new message` appends a message to the conversation.
 `Re-post unchanged` keeps the same notification id, the same message list and
 (unless you tick the bump option) the same last-message timestamp. That is the

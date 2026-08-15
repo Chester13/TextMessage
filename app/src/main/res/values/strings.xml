@@ -15,6 +15,9 @@
     <string name="hint_message">Message text</string>
     <string name="default_message">Test message</string>
     <string name="opt_autonumber">Append a counter to each new message</string>
+    <string name="help_backdate">Dates the message into the past while the notification still posts now, the way delivery latency or an offline backlog looks. Readers that stamp messages with the arrival time cannot tell; readers that use the sender\'s time can.</string>
+    <string name="opt_backdate">seconds into the past (0 = now)</string>
+    <string name="default_backdate">0</string>
 
     <!-- Avatar -->
     <string name="section_avatar">Avatar source</string>

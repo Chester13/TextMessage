@@ -29,6 +29,7 @@ class ChatActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+        findViewById<android.view.View>(R.id.chat_root).padForSystemBars()
         findViewById<Button>(R.id.chat_back).setOnClickListener { finish() }
         report(intent)
     }

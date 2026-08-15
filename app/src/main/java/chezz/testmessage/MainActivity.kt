@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
@@ -33,6 +34,7 @@ class MainActivity : Activity() {
     private lateinit var etTitle: EditText
     private lateinit var etMessage: EditText
     private lateinit var etDelay: EditText
+    private lateinit var etBackdate: EditText
     private lateinit var cbAutonumber: CheckBox
     private lateinit var cbLargeIcon: CheckBox
     private lateinit var cbPersonIcon: CheckBox
@@ -48,12 +50,14 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        findViewById<View>(R.id.root_scroll).padForSystemBars()
 
         etSender = findViewById(R.id.et_sender)
         etGroup = findViewById(R.id.et_group)
         etTitle = findViewById(R.id.et_title)
         etMessage = findViewById(R.id.et_message)
         etDelay = findViewById(R.id.et_delay)
+        etBackdate = findViewById(R.id.et_backdate)
         cbAutonumber = findViewById(R.id.cb_autonumber)
         cbLargeIcon = findViewById(R.id.cb_large_icon)
         cbPersonIcon = findViewById(R.id.cb_person_icon)
@@ -136,6 +140,7 @@ class MainActivity : Activity() {
             withReplyAction = cbReply.isChecked,
             cancelAfterReply = cbCancelAfterReply.isChecked,
             bumpTimeOnRepost = cbBumpTime.isChecked,
+            backdateSeconds = etBackdate.text.toString().toIntOrNull()?.coerceAtLeast(0) ?: 0,
         )
     }
 

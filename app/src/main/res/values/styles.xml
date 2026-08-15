@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.DayNight" />
+    <!--
+        The action bar is switched off rather than inherited from a NoActionBar
+        variant, because DeviceDefault.DayNight has no such variant. From Android
+        15 a targetSdk 35+ app is laid out edge to edge and the stock action bar
+        then sits over the top of the content; the screens draw their own heading
+        and pad themselves clear of the system bars instead.
+    -->
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
 
     <style name="SectionHeader">
         <item name="android:layout_width">match_parent</item>

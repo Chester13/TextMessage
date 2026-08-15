@@ -60,6 +60,13 @@ object NotifSender {
         val cancelAfterReply: Boolean,
         /** On re-post, give the unchanged message a fresh timestamp. */
         val bumpTimeOnRepost: Boolean,
+        /**
+         * Dates the message this many seconds into the past while the notification
+         * itself still posts now, reproducing delivery latency or an offline
+         * backlog. Readers that stamp messages with the arrival time cannot tell
+         * the difference; readers that use the sender's time can.
+         */
+        val backdateSeconds: Int,
     )
 
     private class Entry(val text: String, var time: Long, val fromSelf: Boolean)
@@ -94,9 +101,11 @@ object NotifSender {
         val key = conversationKey(config)
         val convo = conversationOf(key)
         convo.lastConfig = config
-        convo.messages.add(Entry(config.messageText, System.currentTimeMillis(), fromSelf = false))
+        val sentAt = System.currentTimeMillis() - config.backdateSeconds * 1000L
+        convo.messages.add(Entry(config.messageText, sentAt, fromSelf = false))
         post(context, key, convo, config)
-        EventLog.add("posted new message (id=${convo.id}, ${convo.messages.size} in style): \"${config.messageText}\"")
+        val dating = if (config.backdateSeconds > 0) ", dated ${config.backdateSeconds}s ago" else ""
+        EventLog.add("posted new message (id=${convo.id}, ${convo.messages.size} in style$dating): \"${config.messageText}\"")
     }
 
     /**
