@@ -67,9 +67,26 @@ object NotifSender {
          * the difference; readers that use the sender's time can.
          */
         val backdateSeconds: Int,
-    )
+        /**
+         * Withholds the Person icon from the message being posted while leaving it
+         * on the ones already in the conversation. Reproduces a group member whose
+         * avatar the client has not downloaded, which is where a reader that falls
+         * through to an earlier entry ends up showing the wrong person's face.
+         */
+        val omitIconOnThisMessage: Boolean,
+        /** How many messages `postAlbum` sends under a single shared timestamp. */
+        val albumSize: Int,
+    ) {
+        fun personIconOnThisMessage(): Boolean = withPersonIcon && !omitIconOnThisMessage
+    }
 
-    private class Entry(val text: String, var time: Long, val fromSelf: Boolean)
+    private class Entry(
+        val text: String,
+        var time: Long,
+        val fromSelf: Boolean,
+        /** Per message, so one entry can lack a picture while its neighbours have one. */
+        val withIcon: Boolean
+    )
 
     private class Conversation(val id: Int) {
         val messages = ArrayList<Entry>()
@@ -78,6 +95,11 @@ object NotifSender {
 
     private val conversations = LinkedHashMap<String, Conversation>()
     private var nextId = 1000
+
+    /** Gap between album updates; back-to-back notify() calls on one id get throttled. */
+    private const val ALBUM_SPACING_MS = 400L
+
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
     fun conversationKey(config: Config): String =
         "${config.senderName}|${config.conversationTitle ?: ""}"
@@ -102,10 +124,42 @@ object NotifSender {
         val convo = conversationOf(key)
         convo.lastConfig = config
         val sentAt = System.currentTimeMillis() - config.backdateSeconds * 1000L
-        convo.messages.add(Entry(config.messageText, sentAt, fromSelf = false))
+        convo.messages.add(
+            Entry(config.messageText, sentAt, fromSelf = false, withIcon = config.personIconOnThisMessage())
+        )
         post(context, key, convo, config)
         val dating = if (config.backdateSeconds > 0) ", dated ${config.backdateSeconds}s ago" else ""
         EventLog.add("posted new message (id=${convo.id}, ${convo.messages.size} in style$dating): \"${config.messageText}\"")
+    }
+
+    /**
+     * Sends several messages that all claim the same send time, one notification
+     * update per message, the way a Telegram album of photos arrives.
+     *
+     * Each update is a separate callback for the reader, but every message shares
+     * a timestamp — so a reader whose duplicate detection keys on time alone will
+     * record the first and silently discard the rest. With the counter switched
+     * off the texts match too, which is genuinely indistinguishable and should
+     * collapse to one; with it on they differ and all of them should survive.
+     *
+     * The updates are spaced out because the framework throttles rapid repeats of
+     * the same notification id.
+     */
+    fun postAlbum(context: Context, config: Config, textFor: (Int) -> String) {
+        val key = conversationKey(config)
+        val convo = conversationOf(key)
+        convo.lastConfig = config
+        val sentAt = System.currentTimeMillis() - config.backdateSeconds * 1000L
+        val count = config.albumSize.coerceIn(2, 10)
+        for (i in 0 until count) {
+            handler.postDelayed({
+                convo.messages.add(
+                    Entry(textFor(i), sentAt, fromSelf = false, withIcon = config.personIconOnThisMessage())
+                )
+                post(context, key, convo, config)
+                EventLog.add("album ${i + 1}/$count at shared time $sentAt: \"${textFor(i)}\"")
+            }, i * ALBUM_SPACING_MS)
+        }
     }
 
     /**
@@ -137,7 +191,7 @@ object NotifSender {
     fun appendOwnReply(context: Context, key: String, text: String) {
         val convo = conversations[key] ?: return
         val config = convo.lastConfig ?: return
-        convo.messages.add(Entry(text, System.currentTimeMillis(), fromSelf = true))
+        convo.messages.add(Entry(text, System.currentTimeMillis(), fromSelf = true, withIcon = false))
         post(context, key, convo, config)
         EventLog.add("notification updated to include own reply: \"$text\"")
     }
@@ -178,11 +232,16 @@ object NotifSender {
     private fun post(context: Context, key: String, convo: Conversation, config: Config) {
         val self = Person.Builder().setName("Me").setKey("self").build()
 
-        val senderBuilder = Person.Builder()
-            .setName(config.senderName)
-            .setKey("sender:${config.senderName}")
-        if (config.withPersonIcon) senderBuilder.setIcon(Avatars.personIcon())
-        val sender = senderBuilder.build()
+        // Built per entry: a real client only attaches a picture once it has the
+        // sender's avatar downloaded, so within one conversation some messages
+        // carry one and some do not.
+        fun senderFor(withIcon: Boolean): Person {
+            val builder = Person.Builder()
+                .setName(config.senderName)
+                .setKey("sender:${config.senderName}")
+            if (withIcon) builder.setIcon(Avatars.personIcon())
+            return builder.build()
+        }
 
         val style = Notification.MessagingStyle(self)
         if (config.conversationTitle != null) {
@@ -196,7 +255,7 @@ object NotifSender {
                 Notification.MessagingStyle.Message(
                     entry.text,
                     entry.time,
-                    if (entry.fromSelf) null else sender
+                    if (entry.fromSelf) null else senderFor(entry.withIcon)
                 )
             )
         }

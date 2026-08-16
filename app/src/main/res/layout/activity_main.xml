@@ -104,6 +104,16 @@
             android:checked="false"
             android:text="@string/opt_person_icon" />
 
+        <CheckBox
+            android:id="@+id/cb_omit_icon"
+            style="@style/Toggle"
+            android:checked="false"
+            android:text="@string/opt_omit_icon" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_omit_icon" />
+
         <!-- ── Open-the-app intent ── -->
 
         <TextView
@@ -163,6 +173,33 @@
             android:id="@+id/btn_post"
             style="@style/Action"
             android:text="@string/btn_post" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_album" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/et_album_size"
+                android:layout_width="72dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="@string/default_album_size" />
+
+            <Button
+                android:id="@+id/btn_post_album"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/btn_post_album" />
+        </LinearLayout>
 
         <TextView
             style="@style/Hint"

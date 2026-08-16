@@ -24,6 +24,8 @@
     <string name="help_avatar">Two places a chat app can put the sender picture. Turn on one at a time to see which one the reading app picks up: blue L = largeIcon, orange P = Person icon.</string>
     <string name="opt_large_icon">largeIcon (blue \"L\")</string>
     <string name="opt_person_icon">MessagingStyle Person icon (orange \"P\")</string>
+    <string name="opt_omit_icon">…but withhold it from the next message posted</string>
+    <string name="help_omit_icon">Keeps the icon on messages already in the conversation and omits it from new ones — what a group member whose avatar has not downloaded looks like. A reader that falls back to an earlier entry will show the wrong person\'s picture.</string>
 
     <!-- contentIntent -->
     <string name="section_intent">Open-the-chat intent</string>
@@ -40,6 +42,9 @@
     <!-- Posting -->
     <string name="section_post">Post</string>
     <string name="btn_post">Post new message</string>
+    <string name="help_album">An album sends several messages that all claim the same send time, one notification update each, the way a batch of photos arrives. With the counter off the texts match too and only one should be recorded; with it on they differ and all of them should survive.</string>
+    <string name="default_album_size">3</string>
+    <string name="btn_post_album">Post album sharing one timestamp</string>
     <string name="help_repost">Re-posting keeps the same notification id and the same message list — the refresh pattern that trips duplicate detection in reading apps.</string>
     <string name="opt_bump_time">Give the unchanged message a fresh timestamp on re-post</string>
     <string name="btn_repost">Re-post unchanged (now)</string>

@@ -35,9 +35,11 @@ class MainActivity : Activity() {
     private lateinit var etMessage: EditText
     private lateinit var etDelay: EditText
     private lateinit var etBackdate: EditText
+    private lateinit var etAlbumSize: EditText
     private lateinit var cbAutonumber: CheckBox
     private lateinit var cbLargeIcon: CheckBox
     private lateinit var cbPersonIcon: CheckBox
+    private lateinit var cbOmitIcon: CheckBox
     private lateinit var cbContentIntent: CheckBox
     private lateinit var spCreatorBal: Spinner
     private lateinit var cbReply: CheckBox
@@ -58,9 +60,11 @@ class MainActivity : Activity() {
         etMessage = findViewById(R.id.et_message)
         etDelay = findViewById(R.id.et_delay)
         etBackdate = findViewById(R.id.et_backdate)
+        etAlbumSize = findViewById(R.id.et_album_size)
         cbAutonumber = findViewById(R.id.cb_autonumber)
         cbLargeIcon = findViewById(R.id.cb_large_icon)
         cbPersonIcon = findViewById(R.id.cb_person_icon)
+        cbOmitIcon = findViewById(R.id.cb_omit_icon)
         cbContentIntent = findViewById(R.id.cb_content_intent)
         spCreatorBal = findViewById(R.id.sp_creator_bal)
         cbReply = findViewById(R.id.cb_reply)
@@ -79,6 +83,17 @@ class MainActivity : Activity() {
 
         findViewById<Button>(R.id.btn_post).setOnClickListener {
             NotifSender.postNew(applicationContext, readConfig(bumpCounter = true))
+        }
+        findViewById<Button>(R.id.btn_post_album).setOnClickListener {
+            // The counter advances per album entry, so with it on the texts differ
+            // and with it off they are all identical — the two cases the album is
+            // there to tell apart.
+            val config = readConfig(bumpCounter = false)
+            NotifSender.postAlbum(applicationContext, config) { index ->
+                if (cbAutonumber.isChecked) "${config.messageText} #${counter + index + 1}"
+                else config.messageText
+            }
+            if (cbAutonumber.isChecked) counter += config.albumSize.coerceIn(2, 10)
         }
         findViewById<Button>(R.id.btn_repost).setOnClickListener {
             NotifSender.repost(applicationContext, readConfig(bumpCounter = false))
@@ -141,6 +156,8 @@ class MainActivity : Activity() {
             cancelAfterReply = cbCancelAfterReply.isChecked,
             bumpTimeOnRepost = cbBumpTime.isChecked,
             backdateSeconds = etBackdate.text.toString().toIntOrNull()?.coerceAtLeast(0) ?: 0,
+            omitIconOnThisMessage = cbOmitIcon.isChecked,
+            albumSize = etAlbumSize.text.toString().toIntOrNull() ?: 3,
         )
     }
 

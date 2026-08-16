@@ -69,6 +69,13 @@ difference; one that uses the sender's time will place the message earlier, so
 this is how to test which of the two a reader does, and how it treats a message
 that predates the current bubble session.
 
+**Album** — sends several messages that all claim the same send time, one
+notification update per message, the way a batch of photos arrives. Turn the
+counter off and the texts match too, which is genuinely indistinguishable and
+should collapse to one message; turn it on and they differ, so all of them
+should survive. A reader that identifies messages by send time alone keeps only
+the first either way.
+
 **Post** — `Post new message` appends a message to the conversation.
 `Re-post unchanged` keeps the same notification id, the same message list and
 (unless you tick the bump option) the same last-message timestamp. That is the
