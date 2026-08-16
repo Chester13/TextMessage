@@ -82,6 +82,35 @@ the first either way.
 refresh pattern Telegram-based clients produce, and the one duplicate detection
 has to survive.
 
+## Driving it from adb
+
+Opening this app brings it to the front, which collapses the overlay panel a
+reading app is being tested in — so anything that only happens while that panel
+is open cannot be reached from the buttons. A broadcast can:
+
+```sh
+BC="adb shell am broadcast -n chezz.testmessage/.CommandReceiver -a"
+
+$BC chezz.testmessage.POST                          # post, inheriting the panel's settings
+$BC chezz.testmessage.POST -e text "hello"          # ...with given text (no auto-numbering)
+$BC chezz.testmessage.POST -e sender Bob -e group Family
+$BC chezz.testmessage.POST --ei backdate 300        # dated five minutes ago
+$BC chezz.testmessage.POST --ez person_icon true --ez large_icon false
+$BC chezz.testmessage.REPOST                        # re-post unchanged
+$BC chezz.testmessage.ALBUM --ei count 3            # one shared timestamp
+$BC chezz.testmessage.CANCEL                        # cancel, keep the conversation
+$BC chezz.testmessage.RESET                         # reset every conversation
+```
+
+Everything not named on the command line comes from whatever the control panel
+last had on screen, saved when it goes to the background. So set the switches
+once, leave the app, and drive it from the shell.
+
+Overrides: `sender`, `group` (empty string means "not a group"), `title`, `text`
+as strings; `backdate` and `count` as `--ei`; `large_icon`, `person_icon` and
+`omit_icon` as `--ez`. Auto-numbering is shared between the panel and the shell,
+so numbers never repeat.
+
 **Events** — what happened outside this app: the contentIntent firing, replies
 arriving. Everything is mirrored to logcat: `adb logcat -s TestMessage`.
 

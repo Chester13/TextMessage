@@ -47,6 +47,7 @@ class MainActivity : Activity() {
     private lateinit var cbBumpTime: CheckBox
     private lateinit var tvLog: TextView
 
+    /** Mirrors ConfigStore's counter so the panel and adb share one sequence. */
     private var counter = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,11 +90,13 @@ class MainActivity : Activity() {
             // and with it off they are all identical — the two cases the album is
             // there to tell apart.
             val config = readConfig(bumpCounter = false)
-            NotifSender.postAlbum(applicationContext, config) { index ->
-                if (cbAutonumber.isChecked) "${config.messageText} #${counter + index + 1}"
-                else config.messageText
+            NotifSender.postAlbum(applicationContext, config) {
+                if (cbAutonumber.isChecked) {
+                    "${config.messageText} #${ConfigStore.nextCounter(applicationContext)}"
+                } else {
+                    config.messageText
+                }
             }
-            if (cbAutonumber.isChecked) counter += config.albumSize.coerceIn(2, 10)
         }
         findViewById<Button>(R.id.btn_repost).setOnClickListener {
             NotifSender.repost(applicationContext, readConfig(bumpCounter = false))
@@ -115,11 +118,16 @@ class MainActivity : Activity() {
         super.onResume()
         EventLog.onChanged = { runOnUiThread { tvLog.text = EventLog.text() } }
         tvLog.text = EventLog.text()
+        // A broadcast may have advanced it while this screen was away.
+        counter = ConfigStore.currentCounter(applicationContext)
     }
 
     override fun onPause() {
         super.onPause()
         EventLog.onChanged = null
+        // Saved here so a broadcast issued after leaving this screen inherits
+        // whatever was set on it.
+        ConfigStore.save(applicationContext, readConfig(bumpCounter = false))
     }
 
     private fun scheduleRepost() {
@@ -138,7 +146,9 @@ class MainActivity : Activity() {
         val group = etGroup.text.toString().trim().takeIf { it.isNotEmpty() }
         val baseText = etMessage.text.toString().trim().ifEmpty { "Test message" }
 
-        if (bumpCounter && cbAutonumber.isChecked) counter++
+        if (bumpCounter && cbAutonumber.isChecked) {
+            counter = ConfigStore.nextCounter(applicationContext)
+        }
         val text = if (cbAutonumber.isChecked) "$baseText #$counter" else baseText
 
         return NotifSender.Config(

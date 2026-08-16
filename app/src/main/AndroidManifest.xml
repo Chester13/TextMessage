@@ -36,5 +36,23 @@
             android:name=".ReplyReceiver"
             android:exported="false" />
 
+        <!--
+            Exported so `adb shell am broadcast` can reach it. Bringing this app
+            to the front collapses the overlay panel under test, so a broadcast
+            is the only way to deliver a notification while that panel is open.
+            The receiver posts synthetic notifications and nothing else.
+        -->
+        <receiver
+            android:name=".CommandReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="chezz.testmessage.POST" />
+                <action android:name="chezz.testmessage.REPOST" />
+                <action android:name="chezz.testmessage.ALBUM" />
+                <action android:name="chezz.testmessage.CANCEL" />
+                <action android:name="chezz.testmessage.RESET" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>

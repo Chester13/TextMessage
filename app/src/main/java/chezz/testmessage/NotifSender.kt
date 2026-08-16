@@ -153,11 +153,13 @@ object NotifSender {
         val count = config.albumSize.coerceIn(2, 10)
         for (i in 0 until count) {
             handler.postDelayed({
+                // Once only: the caller may be advancing a counter inside it.
+                val text = textFor(i)
                 convo.messages.add(
-                    Entry(textFor(i), sentAt, fromSelf = false, withIcon = config.personIconOnThisMessage())
+                    Entry(text, sentAt, fromSelf = false, withIcon = config.personIconOnThisMessage())
                 )
                 post(context, key, convo, config)
-                EventLog.add("album ${i + 1}/$count at shared time $sentAt: \"${textFor(i)}\"")
+                EventLog.add("album ${i + 1}/$count at shared time $sentAt: \"$text\"")
             }, i * ALBUM_SPACING_MS)
         }
     }
