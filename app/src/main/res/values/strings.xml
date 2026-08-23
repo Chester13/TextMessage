@@ -31,6 +31,8 @@
     <string name="section_intent">Open-the-chat intent</string>
     <string name="help_intent">The intent an \"open original app\" button fires. On Android 14+ both the creator and the sender must allow the background activity start; the picker below controls the creator half. Android 16 replaced ALLOWED with two narrower modes, so all three are offered — anything the device is too old for is downgraded and noted in the event log.</string>
     <string name="opt_content_intent">Attach contentIntent</string>
+    <string name="opt_auto_cancel">Set FLAG_AUTO_CANCEL</string>
+    <string name="help_auto_cancel">Lets the system remove the notification when it is tapped, which is the only way to produce REASON_CLICK for a listener watching removals. Needs the contentIntent above, since the tap is what triggers it. Off by default: most chat apps leave the flag off and clear their own notification once the chat opens, which arrives as REASON_APP_CANCEL instead.</string>
     <string name="opt_creator_bal">Creator background-activity-start mode</string>
 
     <!-- Reply -->

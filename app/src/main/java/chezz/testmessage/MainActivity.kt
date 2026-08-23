@@ -41,6 +41,7 @@ class MainActivity : Activity() {
     private lateinit var cbPersonIcon: CheckBox
     private lateinit var cbOmitIcon: CheckBox
     private lateinit var cbContentIntent: CheckBox
+    private lateinit var cbAutoCancel: CheckBox
     private lateinit var spCreatorBal: Spinner
     private lateinit var cbReply: CheckBox
     private lateinit var cbCancelAfterReply: CheckBox
@@ -67,6 +68,7 @@ class MainActivity : Activity() {
         cbPersonIcon = findViewById(R.id.cb_person_icon)
         cbOmitIcon = findViewById(R.id.cb_omit_icon)
         cbContentIntent = findViewById(R.id.cb_content_intent)
+        cbAutoCancel = findViewById(R.id.cb_auto_cancel)
         spCreatorBal = findViewById(R.id.sp_creator_bal)
         cbReply = findViewById(R.id.cb_reply)
         cbCancelAfterReply = findViewById(R.id.cb_cancel_after_reply)
@@ -161,6 +163,7 @@ class MainActivity : Activity() {
             withLargeIcon = cbLargeIcon.isChecked,
             withPersonIcon = cbPersonIcon.isChecked,
             withContentIntent = cbContentIntent.isChecked,
+            autoCancel = cbAutoCancel.isChecked,
             creatorBalMode = NotifSender.BalMode.entries[spCreatorBal.selectedItemPosition],
             withReplyAction = cbReply.isChecked,
             cancelAfterReply = cbCancelAfterReply.isChecked,

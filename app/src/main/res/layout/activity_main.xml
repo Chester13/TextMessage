@@ -130,6 +130,15 @@
             android:checked="true"
             android:text="@string/opt_content_intent" />
 
+        <CheckBox
+            android:id="@+id/cb_auto_cancel"
+            style="@style/Toggle"
+            android:text="@string/opt_auto_cancel" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_auto_cancel" />
+
         <TextView
             style="@style/Hint"
             android:layout_marginTop="8dp"

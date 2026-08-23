@@ -24,6 +24,7 @@ object ConfigStore {
             .putBoolean("withLargeIcon", config.withLargeIcon)
             .putBoolean("withPersonIcon", config.withPersonIcon)
             .putBoolean("withContentIntent", config.withContentIntent)
+            .putBoolean("autoCancel", config.autoCancel)
             .putString("creatorBalMode", config.creatorBalMode.name)
             .putBoolean("withReplyAction", config.withReplyAction)
             .putBoolean("cancelAfterReply", config.cancelAfterReply)
@@ -46,6 +47,7 @@ object ConfigStore {
             withLargeIcon = p.getBoolean("withLargeIcon", true),
             withPersonIcon = p.getBoolean("withPersonIcon", false),
             withContentIntent = p.getBoolean("withContentIntent", true),
+            autoCancel = p.getBoolean("autoCancel", false),
             creatorBalMode = runCatching {
                 NotifSender.BalMode.valueOf(p.getString("creatorBalMode", null) ?: "")
             }.getOrDefault(NotifSender.BalMode.OFF),
@@ -94,6 +96,9 @@ object ConfigStore {
         }
         if (intent.hasExtra("large_icon")) {
             out = out.copy(withLargeIcon = intent.getBooleanExtra("large_icon", true))
+        }
+        if (intent.hasExtra("auto_cancel")) {
+            out = out.copy(autoCancel = intent.getBooleanExtra("auto_cancel", false))
         }
         if (intent.hasExtra("person_icon")) {
             out = out.copy(withPersonIcon = intent.getBooleanExtra("person_icon", false))

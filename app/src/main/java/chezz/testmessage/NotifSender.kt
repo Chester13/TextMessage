@@ -55,6 +55,15 @@ object NotifSender {
         val withLargeIcon: Boolean,
         val withPersonIcon: Boolean,
         val withContentIntent: Boolean,
+        /**
+         * Sets FLAG_AUTO_CANCEL, which makes the system remove the notification
+         * when it is tapped — the only way to produce REASON_CLICK for a reader
+         * watching removals. Off by default because it is the minority behaviour
+         * among chat apps: WhatsApp leaves the flag off and clears its own
+         * notification once the chat is opened, which arrives as REASON_APP_CANCEL
+         * instead. Needs [withContentIntent], since the tap is what triggers it.
+         */
+        val autoCancel: Boolean,
         val creatorBalMode: BalMode,
         val withReplyAction: Boolean,
         val cancelAfterReply: Boolean,
@@ -272,7 +281,7 @@ object NotifSender {
             .setContentText(convo.messages.last().text)
             .setWhen(System.currentTimeMillis())
             .setShowWhen(true)
-            .setAutoCancel(false)
+            .setAutoCancel(config.autoCancel)
             .setCategory(Notification.CATEGORY_MESSAGE)
 
         if (config.withLargeIcon) builder.setLargeIcon(Avatars.largeIcon())
