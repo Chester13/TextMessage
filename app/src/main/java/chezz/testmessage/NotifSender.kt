@@ -67,6 +67,22 @@ object NotifSender {
         val creatorBalMode: BalMode,
         val withReplyAction: Boolean,
         val cancelAfterReply: Boolean,
+        /**
+         * Reproduces what a Telegram-based client does once a reply goes through:
+         * mark that chat read, cancel every notification it has posted, and post
+         * the still-unread ones again a moment later. A reader that treats an
+         * app's cancel as "the user read this" loses the bubbles for chats the
+         * user never touched, and the re-post arrives too late to bring them back.
+         *
+         * Supersedes [cancelAfterReply], which cancels only the chat replied to.
+         */
+        val rebuildAfterReply: Boolean,
+        /**
+         * How long a rebuild leaves the shade empty before posting again. This is
+         * the variable that decides whether a reader notices the gap at all, and
+         * the one thing a real client never lets you set.
+         */
+        val rebuildGapMs: Int,
         /** On re-post, give the unchanged message a fresh timestamp. */
         val bumpTimeOnRepost: Boolean,
         /**
@@ -100,6 +116,8 @@ object NotifSender {
     private class Conversation(val id: Int) {
         val messages = ArrayList<Entry>()
         var lastConfig: Config? = null
+        /** Read chats are the ones a rebuild drops instead of posting again. */
+        var read = false
     }
 
     private val conversations = LinkedHashMap<String, Conversation>()
@@ -132,6 +150,7 @@ object NotifSender {
         val key = conversationKey(config)
         val convo = conversationOf(key)
         convo.lastConfig = config
+        convo.read = false
         val sentAt = System.currentTimeMillis() - config.backdateSeconds * 1000L
         convo.messages.add(
             Entry(config.messageText, sentAt, fromSelf = false, withIcon = config.personIconOnThisMessage())
@@ -217,6 +236,48 @@ object NotifSender {
         manager(context).cancel(convo.id)
         EventLog.add("cancelled notification (id=${convo.id}) — reply action left intact")
     }
+
+    /**
+     * Cancels everything this app has posted, then posts back whatever is still
+     * unread once [gapMs] has passed.
+     *
+     * This is the refresh pattern of Telegram-based clients, and the reason a
+     * reader cannot read "the app cancelled its notification" as "the user has
+     * dealt with this": for a moment the app has nothing showing at all, and that
+     * moment says nothing about the user. [readKey] names the chat the rebuild
+     * treats as read, which is the one that does not come back.
+     *
+     * [onDone] fires once the re-post has happened. A broadcast receiver has to
+     * hold itself open until then: its process is eligible to be killed the
+     * moment onReceive returns, and a delayed re-post in a dead process simply
+     * never happens — which looks exactly like the app choosing not to post
+     * again, and would be read as a real result.
+     */
+    fun rebuild(context: Context, readKey: String?, gapMs: Long, onDone: (() -> Unit)? = null) {
+        readKey?.let { conversations[it]?.read = true }
+        val posted = conversations.filterValues { it.messages.isNotEmpty() }
+        if (posted.isEmpty()) {
+            EventLog.add("rebuild skipped: nothing posted yet")
+            onDone?.invoke()
+            return
+        }
+        posted.values.forEach { manager(context).cancel(it.id) }
+        val readNote = readKey?.let { ", \"$it\" marked read" } ?: ""
+        EventLog.add("rebuild: cancelled ${posted.size} notification(s)$readNote")
+
+        handler.postDelayed({
+            val back = posted.filterValues { !it.read }
+            back.forEach { (key, convo) ->
+                convo.lastConfig?.let { post(context, key, convo, it) }
+            }
+            EventLog.add("rebuild: re-posted ${back.size} of ${posted.size} after ${gapMs}ms")
+            onDone?.invoke()
+        }, gapMs)
+    }
+
+    /** Resolves the conversation a command named by sender alone. */
+    fun conversationKeyForSender(name: String): String? =
+        conversations.keys.firstOrNull { it.substringBefore('|') == name }
 
     fun cancelById(context: Context, key: String) {
         val convo = conversations[key] ?: return
@@ -361,6 +422,8 @@ object NotifSender {
             .setAction("chezz.testmessage.REPLY")
             .putExtra(EXTRA_CONVERSATION_KEY, key)
             .putExtra(ReplyReceiver.EXTRA_CANCEL_AFTER_REPLY, config.cancelAfterReply)
+            .putExtra(ReplyReceiver.EXTRA_REBUILD_AFTER_REPLY, config.rebuildAfterReply)
+            .putExtra(ReplyReceiver.EXTRA_REBUILD_GAP_MS, config.rebuildGapMs)
 
         // FLAG_MUTABLE is mandatory: the system fills the reply text into this
         // intent before delivering it.

@@ -17,6 +17,8 @@ class ReplyReceiver : BroadcastReceiver() {
 
     companion object {
         const val EXTRA_CANCEL_AFTER_REPLY = "chezz.testmessage.CANCEL_AFTER_REPLY"
+        const val EXTRA_REBUILD_AFTER_REPLY = "chezz.testmessage.REBUILD_AFTER_REPLY"
+        const val EXTRA_REBUILD_GAP_MS = "chezz.testmessage.REBUILD_GAP_MS"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -31,6 +33,8 @@ class ReplyReceiver : BroadcastReceiver() {
 
         val key = intent.getStringExtra(NotifSender.EXTRA_CONVERSATION_KEY) ?: ""
         val cancelAfter = intent.getBooleanExtra(EXTRA_CANCEL_AFTER_REPLY, false)
+        val rebuildAfter = intent.getBooleanExtra(EXTRA_REBUILD_AFTER_REPLY, false)
+        val rebuildGap = intent.getIntExtra(EXTRA_REBUILD_GAP_MS, 800)
 
         val stillShowing = context.getSystemService(NotificationManager::class.java)
             .activeNotifications
@@ -43,6 +47,14 @@ class ReplyReceiver : BroadcastReceiver() {
             // resurrect it and muddy the result, so only echo while it is live.
             !stillShowing ->
                 EventLog.add("reply channel still worked with no notification present")
+            // The Telegram shape: the reply marks that chat read, and the client
+            // rebuilds its whole set rather than touching one notification.
+            rebuildAfter -> {
+                val pending = goAsync()
+                NotifSender.rebuild(context, readKey = key, gapMs = rebuildGap.toLong()) {
+                    pending.finish()
+                }
+            }
             cancelAfter -> NotifSender.cancelById(context, key)
             else -> NotifSender.appendOwnReply(context, key, text)
         }

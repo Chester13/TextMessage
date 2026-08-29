@@ -45,6 +45,8 @@ class MainActivity : Activity() {
     private lateinit var spCreatorBal: Spinner
     private lateinit var cbReply: CheckBox
     private lateinit var cbCancelAfterReply: CheckBox
+    private lateinit var cbRebuildAfterReply: CheckBox
+    private lateinit var etRebuildGap: EditText
     private lateinit var cbBumpTime: CheckBox
     private lateinit var tvLog: TextView
 
@@ -72,6 +74,8 @@ class MainActivity : Activity() {
         spCreatorBal = findViewById(R.id.sp_creator_bal)
         cbReply = findViewById(R.id.cb_reply)
         cbCancelAfterReply = findViewById(R.id.cb_cancel_after_reply)
+        cbRebuildAfterReply = findViewById(R.id.cb_rebuild_after_reply)
+        etRebuildGap = findViewById(R.id.et_rebuild_gap)
         cbBumpTime = findViewById(R.id.cb_bump_time)
         tvLog = findViewById(R.id.tv_log)
 
@@ -106,6 +110,11 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.btn_repost_delayed).setOnClickListener { scheduleRepost() }
         findViewById<Button>(R.id.btn_cancel).setOnClickListener {
             NotifSender.cancel(applicationContext, readConfig(bumpCounter = false))
+        }
+
+        findViewById<Button>(R.id.btn_rebuild).setOnClickListener {
+            val config = readConfig(bumpCounter = false)
+            NotifSender.rebuild(applicationContext, readKey = null, gapMs = config.rebuildGapMs.toLong())
         }
         findViewById<Button>(R.id.btn_reset).setOnClickListener {
             NotifSender.reset(applicationContext, readConfig(bumpCounter = false))
@@ -167,6 +176,9 @@ class MainActivity : Activity() {
             creatorBalMode = NotifSender.BalMode.entries[spCreatorBal.selectedItemPosition],
             withReplyAction = cbReply.isChecked,
             cancelAfterReply = cbCancelAfterReply.isChecked,
+            rebuildAfterReply = cbRebuildAfterReply.isChecked,
+            rebuildGapMs = etRebuildGap.text.toString().toIntOrNull()
+                ?.coerceIn(0, ConfigStore.MAX_REBUILD_GAP_MS) ?: 800,
             bumpTimeOnRepost = cbBumpTime.isChecked,
             backdateSeconds = etBackdate.text.toString().toIntOrNull()?.coerceAtLeast(0) ?: 0,
             omitIconOnThisMessage = cbOmitIcon.isChecked,

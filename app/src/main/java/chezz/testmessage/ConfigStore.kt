@@ -13,6 +13,13 @@ import android.content.Intent
 object ConfigStore {
 
     private const val PREFS = "last_config"
+
+    /**
+     * Ceiling on the rebuild gap. The receiver that schedules the re-post keeps
+     * itself alive with goAsync, and the platform allows that for about ten
+     * seconds before it stops waiting.
+     */
+    const val MAX_REBUILD_GAP_MS = 9000
     private const val KEY_COUNTER = "counter"
 
     fun save(context: Context, config: NotifSender.Config) {
@@ -28,6 +35,8 @@ object ConfigStore {
             .putString("creatorBalMode", config.creatorBalMode.name)
             .putBoolean("withReplyAction", config.withReplyAction)
             .putBoolean("cancelAfterReply", config.cancelAfterReply)
+            .putBoolean("rebuildAfterReply", config.rebuildAfterReply)
+            .putInt("rebuildGapMs", config.rebuildGapMs)
             .putBoolean("bumpTimeOnRepost", config.bumpTimeOnRepost)
             .putInt("backdateSeconds", config.backdateSeconds)
             .putBoolean("omitIconOnThisMessage", config.omitIconOnThisMessage)
@@ -53,6 +62,8 @@ object ConfigStore {
             }.getOrDefault(NotifSender.BalMode.OFF),
             withReplyAction = p.getBoolean("withReplyAction", true),
             cancelAfterReply = p.getBoolean("cancelAfterReply", false),
+            rebuildAfterReply = p.getBoolean("rebuildAfterReply", false),
+            rebuildGapMs = p.getInt("rebuildGapMs", 800),
             bumpTimeOnRepost = p.getBoolean("bumpTimeOnRepost", false),
             backdateSeconds = p.getInt("backdateSeconds", 0),
             omitIconOnThisMessage = p.getBoolean("omitIconOnThisMessage", false),
@@ -105,6 +116,12 @@ object ConfigStore {
         }
         if (intent.hasExtra("omit_icon")) {
             out = out.copy(omitIconOnThisMessage = intent.getBooleanExtra("omit_icon", false))
+        }
+        if (intent.hasExtra("rebuild_after_reply")) {
+            out = out.copy(rebuildAfterReply = intent.getBooleanExtra("rebuild_after_reply", false))
+        }
+        if (intent.hasExtra("gap")) {
+            out = out.copy(rebuildGapMs = intent.getIntExtra("gap", 800).coerceIn(0, MAX_REBUILD_GAP_MS))
         }
         if (intent.hasExtra("count")) {
             out = out.copy(albumSize = intent.getIntExtra("count", 3))

@@ -31,6 +31,7 @@ class CommandReceiver : BroadcastReceiver() {
         const val ACTION_REPOST = "chezz.testmessage.REPOST"
         const val ACTION_ALBUM = "chezz.testmessage.ALBUM"
         const val ACTION_CANCEL = "chezz.testmessage.CANCEL"
+        const val ACTION_REBUILD = "chezz.testmessage.REBUILD"
         const val ACTION_RESET = "chezz.testmessage.RESET"
     }
 
@@ -53,6 +54,17 @@ class CommandReceiver : BroadcastReceiver() {
                 }
             }
             ACTION_CANCEL -> NotifSender.cancel(app, base)
+            ACTION_REBUILD -> {
+                // Held open across the gap; see NotifSender.rebuild.
+                val pending = goAsync()
+                NotifSender.rebuild(
+                    app,
+                    // Named by sender alone, since that is what the other commands take.
+                    readKey = intent.getStringExtra("read")
+                        ?.let { NotifSender.conversationKeyForSender(it) },
+                    gapMs = base.rebuildGapMs.toLong()
+                ) { pending.finish() }
+            }
             ACTION_RESET -> NotifSender.resetAll(app)
             else -> EventLog.add("unknown command: ${intent.action}")
         }

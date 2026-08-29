@@ -40,6 +40,11 @@
     <string name="help_reply">Adds a RemoteInput action. Replies land in the event log below, which also records whether the notification was still showing at the time.</string>
     <string name="opt_reply">Attach reply action</string>
     <string name="opt_cancel_after_reply">Cancel the notification after a reply arrives</string>
+    <string name="opt_rebuild_after_reply">Rebuild all notifications after a reply arrives</string>
+    <string name="help_rebuild">A rebuild cancels every notification this app has posted, then posts back the ones still unread. Telegram-based clients do this on every reply — the chat replied to is marked read and does not return. For a moment the app has nothing showing, which is what a reader must not mistake for "the user has dealt with all of this". The gap below is how long that moment lasts.</string>
+    <string name="hint_rebuild_gap">Gap ms</string>
+    <string name="default_rebuild_gap">800</string>
+    <string name="btn_rebuild">Rebuild notifications now</string>
 
     <!-- Posting -->
     <string name="section_post">Post</string>

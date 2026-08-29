@@ -172,6 +172,40 @@
             android:checked="false"
             android:text="@string/opt_cancel_after_reply" />
 
+        <CheckBox
+            android:id="@+id/cb_rebuild_after_reply"
+            style="@style/Toggle"
+            android:text="@string/opt_rebuild_after_reply" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_rebuild" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp">
+
+            <EditText
+                android:id="@+id/et_rebuild_gap"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="@string/hint_rebuild_gap"
+                android:text="@string/default_rebuild_gap" />
+
+            <Button
+                android:id="@+id/btn_rebuild"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/btn_rebuild" />
+        </LinearLayout>
+
         <!-- ── Posting ── -->
 
         <TextView
