@@ -171,6 +171,15 @@
             android:text="@string/help_key_shape" />
 
         <CheckBox
+            android:id="@+id/cb_new_id_on_repost"
+            style="@style/Toggle"
+            android:text="@string/opt_new_id_on_repost" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_new_id_on_repost" />
+
+        <CheckBox
             android:id="@+id/cb_group_summary"
             style="@style/Toggle"
             android:text="@string/opt_group_summary" />

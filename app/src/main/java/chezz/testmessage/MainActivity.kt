@@ -51,6 +51,7 @@ class MainActivity : Activity() {
     private lateinit var spKeyShape: Spinner
     private lateinit var cbGroupSummary: CheckBox
     private lateinit var etNotifGroup: EditText
+    private lateinit var cbNewIdOnRepost: CheckBox
     private lateinit var tvLog: TextView
 
     /** Mirrors ConfigStore's counter so the panel and adb share one sequence. */
@@ -78,6 +79,7 @@ class MainActivity : Activity() {
         spKeyShape = findViewById(R.id.sp_key_shape)
         cbGroupSummary = findViewById(R.id.cb_group_summary)
         etNotifGroup = findViewById(R.id.et_notif_group)
+        cbNewIdOnRepost = findViewById(R.id.cb_new_id_on_repost)
         cbReply = findViewById(R.id.cb_reply)
         cbCancelAfterReply = findViewById(R.id.cb_cancel_after_reply)
         cbRebuildAfterReply = findViewById(R.id.cb_rebuild_after_reply)
@@ -196,6 +198,7 @@ class MainActivity : Activity() {
             omitIconOnThisMessage = cbOmitIcon.isChecked,
             albumSize = etAlbumSize.text.toString().toIntOrNull() ?: 3,
             keyShape = NotifSender.KeyShape.entries[spKeyShape.selectedItemPosition],
+            newIdOnRepost = cbNewIdOnRepost.isChecked,
             withGroupSummary = cbGroupSummary.isChecked,
             notificationGroup = etNotifGroup.text.toString().trim().ifEmpty { "MESSAGES" },
         )

@@ -122,6 +122,16 @@ object NotifSender {
         /** See [KeyShape]. Changing it re-posts the chat under a different key. */
         val keyShape: KeyShape,
         /**
+         * Give a chat a new notification id when a rebuild puts it back, so the same
+         * conversation returns under a key it has never been seen under.
+         *
+         * A reader that remembers the key it saw in order to act on it later is left
+         * holding one that names nothing. Whether any real client does this is not
+         * settled — the ones measured here keep a stable per-chat id — so this exists
+         * to find out what happens if one does, rather than because one is known to.
+         */
+        val newIdOnRepost: Boolean,
+        /**
          * Posts a group summary beside the chats, the way an app does once it has
          * more than one notification out.
          *
@@ -156,7 +166,15 @@ object NotifSender {
         val senderName: String
     )
 
-    private class Conversation(val id: Int) {
+    private class Conversation(
+        /**
+         * Not fixed for the life of the conversation: a rebuild can be told to hand
+         * it a fresh one, which is how a client that re-posts under a different
+         * notification id is reproduced. The tag and id actually posted are recorded
+         * separately below, so cancelling still finds whatever is on screen now.
+         */
+        var id: Int
+    ) {
         val messages = ArrayList<Entry>()
         var lastConfig: Config? = null
         /** Read chats are the ones a rebuild drops instead of posting again. */
@@ -416,10 +434,17 @@ object NotifSender {
 
         handler.postDelayed({
             val back = posted.filterValues { !it.read }
+            var rekeyed = 0
             back.forEach { (key, convo) ->
-                convo.lastConfig?.let { post(context, key, convo, it) }
+                val config = convo.lastConfig ?: return@forEach
+                if (config.newIdOnRepost) {
+                    convo.id = nextId++
+                    rekeyed++
+                }
+                post(context, key, convo, config)
             }
-            EventLog.add("rebuild: re-posted ${back.size} of ${posted.size} after ${gapMs}ms")
+            val note = if (rekeyed > 0) ", $rekeyed under a new id" else ""
+            EventLog.add("rebuild: re-posted ${back.size} of ${posted.size} after ${gapMs}ms$note")
             onDone?.invoke()
         }, gapMs)
     }

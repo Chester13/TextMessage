@@ -42,6 +42,7 @@ object ConfigStore {
             .putBoolean("omitIconOnThisMessage", config.omitIconOnThisMessage)
             .putInt("albumSize", config.albumSize)
             .putString("keyShape", config.keyShape.name)
+            .putBoolean("newIdOnRepost", config.newIdOnRepost)
             .putBoolean("withGroupSummary", config.withGroupSummary)
             .putString("notificationGroup", config.notificationGroup)
             .apply()
@@ -74,6 +75,7 @@ object ConfigStore {
             keyShape = runCatching {
                 NotifSender.KeyShape.valueOf(p.getString("keyShape", null) ?: "")
             }.getOrDefault(NotifSender.KeyShape.ID_PER_CHAT),
+            newIdOnRepost = p.getBoolean("newIdOnRepost", false),
             withGroupSummary = p.getBoolean("withGroupSummary", false),
             notificationGroup = p.getString("notificationGroup", null)?.takeIf { it.isNotEmpty() }
                 ?: "MESSAGES",
@@ -140,6 +142,9 @@ object ConfigStore {
         intent.getStringExtra("key_shape")?.let { name ->
             runCatching { NotifSender.KeyShape.valueOf(name.uppercase()) }
                 .onSuccess { out = out.copy(keyShape = it) }
+        }
+        if (intent.hasExtra("new_id_on_repost")) {
+            out = out.copy(newIdOnRepost = intent.getBooleanExtra("new_id_on_repost", false))
         }
         if (intent.hasExtra("group_summary")) {
             out = out.copy(withGroupSummary = intent.getBooleanExtra("group_summary", false))

@@ -41,6 +41,8 @@
     <string name="help_key_shape">Decides the shape of sbn.key, which is user|package|id|tag|uid. A reader that remembers a key so it can act on it later behaves differently against each shape, and the difference only shows up on apps that use it. These three were measured from real notifications.</string>
     <string name="opt_group_summary">Post a group summary beside the chats</string>
     <string name="help_group_summary">Posts a summary notification over the chats, refreshed whenever one is posted and then left alone — it is never updated or removed when a chat\'s notification goes away. That is the point: it makes visible whether the system takes an orphaned summary down by itself, which decides whether a reader that cancels a chat has to clean up after it.</string>
+    <string name="opt_new_id_on_repost">Rebuild puts a chat back under a new id</string>
+    <string name="help_new_id_on_repost">Only applies to the rebuild above. The chat returns under a notification id it has never had, so anything that remembered the old key is left holding one that names nothing. None of the clients measured here does this — their per-chat ids are stable — so this is for finding out what would happen if one did.</string>
     <string name="hint_notif_group">Notification group</string>
     <string name="help_notif_group">Which group the chat joins, and so which summary covers it. Two different names puts two groups in the shade at once, which is the only way to check that clearing everything under one of them leaves the other one\'s summary standing. Not the same thing as the group chat name above: that one names a conversation, this one names a bundle of notifications.</string>
     <string name="section_reply">Direct Reply</string>
