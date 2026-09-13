@@ -150,6 +150,48 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp" />
 
+        <!-- ── Notification identity ── -->
+
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/section_identity" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/opt_key_shape" />
+
+        <Spinner
+            android:id="@+id/sp_key_shape"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_key_shape" />
+
+        <CheckBox
+            android:id="@+id/cb_group_summary"
+            style="@style/Toggle"
+            android:text="@string/opt_group_summary" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_group_summary" />
+
+        <EditText
+            android:id="@+id/et_notif_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:hint="@string/hint_notif_group"
+            android:inputType="text"
+            android:text="MESSAGES" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_notif_group" />
+
         <!-- ── Direct Reply ── -->
 
         <TextView

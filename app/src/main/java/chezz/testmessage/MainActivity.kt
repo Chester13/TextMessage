@@ -48,6 +48,9 @@ class MainActivity : Activity() {
     private lateinit var cbRebuildAfterReply: CheckBox
     private lateinit var etRebuildGap: EditText
     private lateinit var cbBumpTime: CheckBox
+    private lateinit var spKeyShape: Spinner
+    private lateinit var cbGroupSummary: CheckBox
+    private lateinit var etNotifGroup: EditText
     private lateinit var tvLog: TextView
 
     /** Mirrors ConfigStore's counter so the panel and adb share one sequence. */
@@ -72,6 +75,9 @@ class MainActivity : Activity() {
         cbContentIntent = findViewById(R.id.cb_content_intent)
         cbAutoCancel = findViewById(R.id.cb_auto_cancel)
         spCreatorBal = findViewById(R.id.sp_creator_bal)
+        spKeyShape = findViewById(R.id.sp_key_shape)
+        cbGroupSummary = findViewById(R.id.cb_group_summary)
+        etNotifGroup = findViewById(R.id.et_notif_group)
         cbReply = findViewById(R.id.cb_reply)
         cbCancelAfterReply = findViewById(R.id.cb_cancel_after_reply)
         cbRebuildAfterReply = findViewById(R.id.cb_rebuild_after_reply)
@@ -83,6 +89,12 @@ class MainActivity : Activity() {
             this,
             android.R.layout.simple_spinner_dropdown_item,
             NotifSender.BalMode.entries.map { it.label }
+        )
+
+        spKeyShape.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            NotifSender.KeyShape.entries.map { it.label }
         )
 
         NotifSender.ensureChannel(this)
@@ -183,6 +195,9 @@ class MainActivity : Activity() {
             backdateSeconds = etBackdate.text.toString().toIntOrNull()?.coerceAtLeast(0) ?: 0,
             omitIconOnThisMessage = cbOmitIcon.isChecked,
             albumSize = etAlbumSize.text.toString().toIntOrNull() ?: 3,
+            keyShape = NotifSender.KeyShape.entries[spKeyShape.selectedItemPosition],
+            withGroupSummary = cbGroupSummary.isChecked,
+            notificationGroup = etNotifGroup.text.toString().trim().ifEmpty { "MESSAGES" },
         )
     }
 

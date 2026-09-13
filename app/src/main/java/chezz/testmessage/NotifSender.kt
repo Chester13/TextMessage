@@ -44,6 +44,24 @@ object NotifSender {
         ALLOW_IF_VISIBLE("ALLOW_IF_VISIBLE", 4, 36),
     }
 
+    /**
+     * How the posting app spreads its chats over notification ids and tags, which
+     * is what decides the shape of `sbn.key` — "user|package|id|tag|uid" — and so
+     * how stable that key is for one conversation over time.
+     *
+     * Worth varying because a reader that remembers a key in order to act on it
+     * later behaves differently against each of these, and the differences only
+     * show up on the app that uses that shape. Measured from real notifications:
+     * WhatsApp puts everything under id 1 and separates chats by tag, LINE gives
+     * each chat an id under one fixed tag, and Telegram-based clients give each
+     * chat an id and no tag at all.
+     */
+    enum class KeyShape(val label: String) {
+        ID_PER_CHAT("one id per chat, no tag — Telegram"),
+        SHARED_ID_TAG_PER_CHAT("one shared id, tag per chat — WhatsApp"),
+        ID_PER_CHAT_SHARED_TAG("one id per chat, one shared tag — LINE"),
+    }
+
     /** Everything the control panel can vary for one posted notification. */
     data class Config(
         val senderName: String,
@@ -101,6 +119,25 @@ object NotifSender {
         val omitIconOnThisMessage: Boolean,
         /** How many messages `postAlbum` sends under a single shared timestamp. */
         val albumSize: Int,
+        /** See [KeyShape]. Changing it re-posts the chat under a different key. */
+        val keyShape: KeyShape,
+        /**
+         * Posts a group summary beside the chats, the way an app does once it has
+         * more than one notification out.
+         *
+         * The summary is posted and then left alone: it is not updated or removed
+         * when a chat's notification goes away. That is deliberate and is the
+         * point of having it — what it makes observable is whether the *system*
+         * takes an orphaned summary down on its own, which decides whether a
+         * reader that cancels a chat has to deal with the leftover itself.
+         */
+        val withGroupSummary: Boolean,
+        /**
+         * Which notification group the chat joins, and therefore which summary
+         * covers it. Two names means two groups out at once, which is what makes
+         * "clearing one group must leave the other's summary alone" testable.
+         */
+        val notificationGroup: String,
     ) {
         fun personIconOnThisMessage(): Boolean = withPersonIcon && !omitIconOnThisMessage
     }
@@ -118,6 +155,16 @@ object NotifSender {
         var lastConfig: Config? = null
         /** Read chats are the ones a rebuild drops instead of posting again. */
         var read = false
+        /**
+         * The tag and id the last post actually used. Cancelling reads these
+         * rather than working them out again, so that changing the key shape
+         * between posting and cancelling still takes down the right notification
+         * instead of missing and leaving it on screen.
+         */
+        var postedTag: String? = null
+        var postedId: Int = id
+        /** Which notification group the last post put it in, for the summary count. */
+        var postedGroup: String? = null
     }
 
     private val conversations = LinkedHashMap<String, Conversation>()
@@ -128,8 +175,76 @@ object NotifSender {
 
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
+    /** What WhatsApp uses for every chat it posts. */
+    private const val SHARED_ID = 1
+
+    /** Stands in for LINE's NOTIFICATION_TAG_MESSAGE. */
+    private const val SHARED_TAG = "TESTMESSAGE_TAG_MESSAGE"
+
+    private const val SUMMARY_ID = 999
+
+    private fun groupKeyFor(name: String) = "chezz.testmessage.$name"
+
+    /**
+     * One summary per group, told apart by tag.
+     *
+     * A real app's summary tends to share the id its chats use — WhatsApp's sits on
+     * id 1 with no tag, beside chats on id 1 with one. That is not copied here,
+     * because being able to have two groups out at once is worth more than matching
+     * one app's summary key: it is the only way to check that cancelling everything
+     * under one group leaves the other group's summary alone. Nothing reading these
+     * notifications should care, since a summary is found by its flag and its group,
+     * never by the id it happens to be on.
+     */
+    private fun summaryTargetFor(groupName: String): Pair<String?, Int> =
+        "summary:$groupName" to SUMMARY_ID
+
     fun conversationKey(config: Config): String =
         "${config.senderName}|${config.conversationTitle ?: ""}"
+
+    /** The tag and id [config]'s shape wants for [convo]. See [KeyShape]. */
+    private fun targetFor(config: Config, key: String, convo: Conversation): Pair<String?, Int> =
+        when (config.keyShape) {
+            KeyShape.ID_PER_CHAT -> null to convo.id
+            // The separator is stripped out of the tag: sbn.key joins its fields with
+            // it, so a tag carrying one reads in a log as though there were an extra
+            // field, which is exactly the kind of thing to not be puzzling over while
+            // reading a capture.
+            KeyShape.SHARED_ID_TAG_PER_CHAT -> key.replace('|', '_') to SHARED_ID
+            KeyShape.ID_PER_CHAT_SHARED_TAG -> SHARED_TAG to convo.id
+        }
+
+    /** Takes down whatever [convo] was last posted as, whatever the shape is now. */
+    private fun cancelPosted(context: Context, convo: Conversation) {
+        manager(context).cancel(convo.postedTag, convo.postedId)
+    }
+
+    /**
+     * Posts the summary for the chats currently out.
+     *
+     * Refreshed alongside a chat so its count is not stale, and deliberately never
+     * touched when one goes away — see [Config.withGroupSummary].
+     */
+    private fun postSummary(context: Context, config: Config) {
+        val group = config.notificationGroup
+        val members = conversations.values
+            .filter { it.messages.isNotEmpty() && it.postedGroup == group }
+        val (tag, id) = summaryTargetFor(group)
+        val builder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("$group: ${members.size} chat(s)")
+            .setContentText(members.joinToString(", ") { it.lastConfig?.senderName ?: "?" })
+            .setGroup(groupKeyFor(group))
+            .setGroupSummary(true)
+            .setCategory(Notification.CATEGORY_MESSAGE)
+        manager(context).notify(tag, id, builder.build())
+        EventLog.add("posted summary for \"$group\" (${members.size} chat(s))")
+    }
+
+    private fun cancelSummary(context: Context, groupName: String) {
+        val (tag, id) = summaryTargetFor(groupName)
+        manager(context).cancel(tag, id)
+    }
 
     private fun conversationOf(key: String): Conversation =
         conversations.getOrPut(key) { Conversation(nextId++) }
@@ -233,7 +348,7 @@ object NotifSender {
             EventLog.add("cancel skipped: no conversation yet for \"$key\"")
             return
         }
-        manager(context).cancel(convo.id)
+        cancelPosted(context, convo)
         EventLog.add("cancelled notification (id=${convo.id}) — reply action left intact")
     }
 
@@ -261,7 +376,7 @@ object NotifSender {
             onDone?.invoke()
             return
         }
-        posted.values.forEach { manager(context).cancel(it.id) }
+        posted.values.forEach { cancelPosted(context, it) }
         val readNote = readKey?.let { ", \"$it\" marked read" } ?: ""
         EventLog.add("rebuild: cancelled ${posted.size} notification(s)$readNote")
 
@@ -281,20 +396,23 @@ object NotifSender {
 
     fun cancelById(context: Context, key: String) {
         val convo = conversations[key] ?: return
-        manager(context).cancel(convo.id)
-        EventLog.add("cancelled notification (id=${convo.id}) after reply")
+        cancelPosted(context, convo)
+        EventLog.add("cancelled notification (id=${convo.postedId}) after reply")
     }
 
     fun reset(context: Context, config: Config) {
         val key = conversationKey(config)
         conversations.remove(key)?.let {
-            manager(context).cancel(it.id)
-            EventLog.add("reset conversation \"$key\" (id=${it.id})")
+            cancelPosted(context, it)
+            it.postedGroup?.let { group -> cancelSummary(context, group) }
+            EventLog.add("reset conversation \"$key\" (id=${it.postedId})")
         }
     }
 
     fun resetAll(context: Context) {
-        conversations.values.forEach { manager(context).cancel(it.id) }
+        conversations.values.forEach { cancelPosted(context, it) }
+        conversations.values.mapNotNull { it.postedGroup }.distinct()
+            .forEach { cancelSummary(context, it) }
         conversations.clear()
         EventLog.add("reset all conversations")
     }
@@ -354,7 +472,17 @@ object NotifSender {
             builder.addAction(buildReplyAction(context, key, convo, config))
         }
 
-        manager(context).notify(convo.id, builder.build())
+        if (config.withGroupSummary) builder.setGroup(groupKeyFor(config.notificationGroup))
+        convo.postedGroup = config.notificationGroup
+
+        val (tag, id) = targetFor(config, key, convo)
+        // Remembered before posting, so a cancel later finds this notification even
+        // if the shape has been changed on the panel in the meantime.
+        convo.postedTag = tag
+        convo.postedId = id
+        manager(context).notify(tag, id, builder.build())
+
+        if (config.withGroupSummary) postSummary(context, config)
     }
 
     private fun buildContentIntent(

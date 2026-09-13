@@ -41,6 +41,9 @@ object ConfigStore {
             .putInt("backdateSeconds", config.backdateSeconds)
             .putBoolean("omitIconOnThisMessage", config.omitIconOnThisMessage)
             .putInt("albumSize", config.albumSize)
+            .putString("keyShape", config.keyShape.name)
+            .putBoolean("withGroupSummary", config.withGroupSummary)
+            .putString("notificationGroup", config.notificationGroup)
             .apply()
     }
 
@@ -68,6 +71,12 @@ object ConfigStore {
             backdateSeconds = p.getInt("backdateSeconds", 0),
             omitIconOnThisMessage = p.getBoolean("omitIconOnThisMessage", false),
             albumSize = p.getInt("albumSize", 3),
+            keyShape = runCatching {
+                NotifSender.KeyShape.valueOf(p.getString("keyShape", null) ?: "")
+            }.getOrDefault(NotifSender.KeyShape.ID_PER_CHAT),
+            withGroupSummary = p.getBoolean("withGroupSummary", false),
+            notificationGroup = p.getString("notificationGroup", null)?.takeIf { it.isNotEmpty() }
+                ?: "MESSAGES",
         )
     }
 
@@ -125,6 +134,18 @@ object ConfigStore {
         }
         if (intent.hasExtra("count")) {
             out = out.copy(albumSize = intent.getIntExtra("count", 3))
+        }
+        // Named by enum constant rather than by index: the order is a UI detail and
+        // a script pinned to it would break the day a shape is added in the middle.
+        intent.getStringExtra("key_shape")?.let { name ->
+            runCatching { NotifSender.KeyShape.valueOf(name.uppercase()) }
+                .onSuccess { out = out.copy(keyShape = it) }
+        }
+        if (intent.hasExtra("group_summary")) {
+            out = out.copy(withGroupSummary = intent.getBooleanExtra("group_summary", false))
+        }
+        intent.getStringExtra("notif_group")?.takeIf { it.isNotEmpty() }?.let {
+            out = out.copy(notificationGroup = it)
         }
         return out
     }
