@@ -147,7 +147,13 @@ object NotifSender {
         var time: Long,
         val fromSelf: Boolean,
         /** Per message, so one entry can lack a picture while its neighbours have one. */
-        val withIcon: Boolean
+        val withIcon: Boolean,
+        /**
+         * Who said it. Per message rather than per conversation, because a group
+         * chat is one notification that several people speak into, and the platform
+         * reads the latest message's sender to build the title it shows.
+         */
+        val senderName: String
     )
 
     private class Conversation(val id: Int) {
@@ -199,8 +205,18 @@ object NotifSender {
     private fun summaryTargetFor(groupName: String): Pair<String?, Int> =
         "summary:$groupName" to SUMMARY_ID
 
+    /**
+     * What counts as one conversation, and so one notification.
+     *
+     * A group is identified by its own name, not by whoever last spoke in it: a
+     * group chat is a single notification that several people post into, and the
+     * platform builds the title it shows from the conversation title and the latest
+     * message's sender. Keying on the speaker instead would split one chat into a
+     * notification per person, which no client does and which hides the case where
+     * one notification stands for several senders at once.
+     */
     fun conversationKey(config: Config): String =
-        "${config.senderName}|${config.conversationTitle ?: ""}"
+        config.conversationTitle ?: config.senderName
 
     /** The tag and id [config]'s shape wants for [convo]. See [KeyShape]. */
     private fun targetFor(config: Config, key: String, convo: Conversation): Pair<String?, Int> =
@@ -268,11 +284,21 @@ object NotifSender {
         convo.read = false
         val sentAt = System.currentTimeMillis() - config.backdateSeconds * 1000L
         convo.messages.add(
-            Entry(config.messageText, sentAt, fromSelf = false, withIcon = config.personIconOnThisMessage())
+            Entry(
+                config.messageText, sentAt, fromSelf = false,
+                withIcon = config.personIconOnThisMessage(), senderName = config.senderName
+            )
         )
         post(context, key, convo, config)
         val dating = if (config.backdateSeconds > 0) ", dated ${config.backdateSeconds}s ago" else ""
-        EventLog.add("posted new message (id=${convo.id}, ${convo.messages.size} in style$dating): \"${config.messageText}\"")
+        // The title is in here because it is the one field that decides how a reader
+        // splits a group chat into senders, and the only way to tell "the panel did
+        // not pick up my edit" from "the reader ignored it" is to see what was
+        // actually sent.
+        EventLog.add(
+            "posted new message (id=${convo.id}, ${convo.messages.size} in style$dating)" +
+                " title=\"${config.contentTitle}\": \"${config.messageText}\""
+        )
     }
 
     /**
@@ -299,7 +325,10 @@ object NotifSender {
                 // Once only: the caller may be advancing a counter inside it.
                 val text = textFor(i)
                 convo.messages.add(
-                    Entry(text, sentAt, fromSelf = false, withIcon = config.personIconOnThisMessage())
+                    Entry(
+                        text, sentAt, fromSelf = false,
+                        withIcon = config.personIconOnThisMessage(), senderName = config.senderName
+                    )
                 )
                 post(context, key, convo, config)
                 EventLog.add("album ${i + 1}/$count at shared time $sentAt: \"$text\"")
@@ -336,7 +365,12 @@ object NotifSender {
     fun appendOwnReply(context: Context, key: String, text: String) {
         val convo = conversations[key] ?: return
         val config = convo.lastConfig ?: return
-        convo.messages.add(Entry(text, System.currentTimeMillis(), fromSelf = true, withIcon = false))
+        convo.messages.add(
+            Entry(
+                text, System.currentTimeMillis(), fromSelf = true,
+                withIcon = false, senderName = config.senderName
+            )
+        )
         post(context, key, convo, config)
         EventLog.add("notification updated to include own reply: \"$text\"")
     }
@@ -390,9 +424,13 @@ object NotifSender {
         }, gapMs)
     }
 
-    /** Resolves the conversation a command named by sender alone. */
+    /**
+     * Resolves the conversation a command named. The name is the group's for a group
+     * chat and the other person's for a one-to-one, which is the same thing a user
+     * would call it.
+     */
     fun conversationKeyForSender(name: String): String? =
-        conversations.keys.firstOrNull { it.substringBefore('|') == name }
+        conversations.keys.firstOrNull { it == name }
 
     fun cancelById(context: Context, key: String) {
         val convo = conversations[key] ?: return
@@ -425,11 +463,11 @@ object NotifSender {
         // Built per entry: a real client only attaches a picture once it has the
         // sender's avatar downloaded, so within one conversation some messages
         // carry one and some do not.
-        fun senderFor(withIcon: Boolean): Person {
+        fun senderFor(entry: Entry): Person {
             val builder = Person.Builder()
-                .setName(config.senderName)
-                .setKey("sender:${config.senderName}")
-            if (withIcon) builder.setIcon(Avatars.personIcon())
+                .setName(entry.senderName)
+                .setKey("sender:${entry.senderName}")
+            if (entry.withIcon) builder.setIcon(Avatars.personIcon())
             return builder.build()
         }
 
@@ -445,7 +483,7 @@ object NotifSender {
                 Notification.MessagingStyle.Message(
                     entry.text,
                     entry.time,
-                    if (entry.fromSelf) null else senderFor(entry.withIcon)
+                    if (entry.fromSelf) null else senderFor(entry)
                 )
             )
         }
