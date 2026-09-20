@@ -101,6 +101,19 @@ object NotifSender {
          * the one thing a real client never lets you set.
          */
         val rebuildGapMs: Int,
+        /**
+         * Appends the reply to the conversation and posts the notification again,
+         * the way a client that shows your sent message in its own notification
+         * does. It is the fallback branch: it applies only when neither
+         * [cancelAfterReply] nor [rebuildAfterReply] does.
+         *
+         * On by default, because leaving the shade untouched after a reply is the
+         * rarer behaviour. Turn it off to measure what a reader's own cancellation
+         * did: a re-post lands within milliseconds of the cancellation it races
+         * and can arrive either side of it, so with this on the shade afterwards
+         * says nothing about who won.
+         */
+        val echoOwnReply: Boolean,
         /** On re-post, give the unchanged message a fresh timestamp. */
         val bumpTimeOnRepost: Boolean,
         /**
@@ -614,6 +627,7 @@ object NotifSender {
             .putExtra(EXTRA_CONVERSATION_KEY, key)
             .putExtra(ReplyReceiver.EXTRA_CANCEL_AFTER_REPLY, config.cancelAfterReply)
             .putExtra(ReplyReceiver.EXTRA_REBUILD_AFTER_REPLY, config.rebuildAfterReply)
+            .putExtra(ReplyReceiver.EXTRA_ECHO_OWN_REPLY, config.echoOwnReply)
             .putExtra(ReplyReceiver.EXTRA_REBUILD_GAP_MS, config.rebuildGapMs)
 
         // FLAG_MUTABLE is mandatory: the system fills the reply text into this

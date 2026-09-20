@@ -257,6 +257,16 @@
                 android:text="@string/btn_rebuild" />
         </LinearLayout>
 
+        <CheckBox
+            android:id="@+id/cb_echo_own_reply"
+            style="@style/Toggle"
+            android:checked="true"
+            android:text="@string/opt_echo_own_reply" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/help_echo_own_reply" />
+
         <!-- ── Posting ── -->
 
         <TextView

@@ -46,6 +46,7 @@ class MainActivity : Activity() {
     private lateinit var cbReply: CheckBox
     private lateinit var cbCancelAfterReply: CheckBox
     private lateinit var cbRebuildAfterReply: CheckBox
+    private lateinit var cbEchoOwnReply: CheckBox
     private lateinit var etRebuildGap: EditText
     private lateinit var cbBumpTime: CheckBox
     private lateinit var spKeyShape: Spinner
@@ -83,6 +84,7 @@ class MainActivity : Activity() {
         cbReply = findViewById(R.id.cb_reply)
         cbCancelAfterReply = findViewById(R.id.cb_cancel_after_reply)
         cbRebuildAfterReply = findViewById(R.id.cb_rebuild_after_reply)
+        cbEchoOwnReply = findViewById(R.id.cb_echo_own_reply)
         etRebuildGap = findViewById(R.id.et_rebuild_gap)
         cbBumpTime = findViewById(R.id.cb_bump_time)
         tvLog = findViewById(R.id.tv_log)
@@ -193,6 +195,7 @@ class MainActivity : Activity() {
             rebuildAfterReply = cbRebuildAfterReply.isChecked,
             rebuildGapMs = etRebuildGap.text.toString().toIntOrNull()
                 ?.coerceIn(0, ConfigStore.MAX_REBUILD_GAP_MS) ?: 800,
+            echoOwnReply = cbEchoOwnReply.isChecked,
             bumpTimeOnRepost = cbBumpTime.isChecked,
             backdateSeconds = etBackdate.text.toString().toIntOrNull()?.coerceAtLeast(0) ?: 0,
             omitIconOnThisMessage = cbOmitIcon.isChecked,

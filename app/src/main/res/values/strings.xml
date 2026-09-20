@@ -51,6 +51,8 @@
     <string name="opt_cancel_after_reply">Cancel the notification after a reply arrives</string>
     <string name="opt_rebuild_after_reply">Rebuild all notifications after a reply arrives</string>
     <string name="help_rebuild">A rebuild cancels every notification this app has posted, then posts back the ones still unread. Telegram-based clients do this on every reply — the chat replied to is marked read and does not return. For a moment the app has nothing showing, which is what a reader must not mistake for "the user has dealt with all of this". The gap below is how long that moment lasts.</string>
+    <string name="opt_echo_own_reply">Echo my reply back into the notification</string>
+    <string name="help_echo_own_reply">What happens when neither of the two above applies: the reply you just sent is appended to the conversation and the notification is posted again, which is how a client that shows your sent message behaves. Turn it off to leave the shade untouched after a reply — the only setting here under which a reading app\'s own cancellation is the only thing that can change it.</string>
     <string name="hint_rebuild_gap">Gap ms</string>
     <string name="default_rebuild_gap">800</string>
     <string name="btn_rebuild">Rebuild notifications now</string>

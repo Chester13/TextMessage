@@ -37,6 +37,7 @@ object ConfigStore {
             .putBoolean("cancelAfterReply", config.cancelAfterReply)
             .putBoolean("rebuildAfterReply", config.rebuildAfterReply)
             .putInt("rebuildGapMs", config.rebuildGapMs)
+            .putBoolean("echoOwnReply", config.echoOwnReply)
             .putBoolean("bumpTimeOnRepost", config.bumpTimeOnRepost)
             .putInt("backdateSeconds", config.backdateSeconds)
             .putBoolean("omitIconOnThisMessage", config.omitIconOnThisMessage)
@@ -68,6 +69,7 @@ object ConfigStore {
             cancelAfterReply = p.getBoolean("cancelAfterReply", false),
             rebuildAfterReply = p.getBoolean("rebuildAfterReply", false),
             rebuildGapMs = p.getInt("rebuildGapMs", 800),
+            echoOwnReply = p.getBoolean("echoOwnReply", true),
             bumpTimeOnRepost = p.getBoolean("bumpTimeOnRepost", false),
             backdateSeconds = p.getInt("backdateSeconds", 0),
             omitIconOnThisMessage = p.getBoolean("omitIconOnThisMessage", false),
@@ -130,6 +132,9 @@ object ConfigStore {
         }
         if (intent.hasExtra("rebuild_after_reply")) {
             out = out.copy(rebuildAfterReply = intent.getBooleanExtra("rebuild_after_reply", false))
+        }
+        if (intent.hasExtra("echo_own_reply")) {
+            out = out.copy(echoOwnReply = intent.getBooleanExtra("echo_own_reply", true))
         }
         if (intent.hasExtra("gap")) {
             out = out.copy(rebuildGapMs = intent.getIntExtra("gap", 800).coerceIn(0, MAX_REBUILD_GAP_MS))

@@ -19,6 +19,7 @@ class ReplyReceiver : BroadcastReceiver() {
         const val EXTRA_CANCEL_AFTER_REPLY = "chezz.testmessage.CANCEL_AFTER_REPLY"
         const val EXTRA_REBUILD_AFTER_REPLY = "chezz.testmessage.REBUILD_AFTER_REPLY"
         const val EXTRA_REBUILD_GAP_MS = "chezz.testmessage.REBUILD_GAP_MS"
+        const val EXTRA_ECHO_OWN_REPLY = "chezz.testmessage.ECHO_OWN_REPLY"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -35,6 +36,7 @@ class ReplyReceiver : BroadcastReceiver() {
         val cancelAfter = intent.getBooleanExtra(EXTRA_CANCEL_AFTER_REPLY, false)
         val rebuildAfter = intent.getBooleanExtra(EXTRA_REBUILD_AFTER_REPLY, false)
         val rebuildGap = intent.getIntExtra(EXTRA_REBUILD_GAP_MS, 800)
+        val echoOwn = intent.getBooleanExtra(EXTRA_ECHO_OWN_REPLY, true)
 
         val stillShowing = context.getSystemService(NotificationManager::class.java)
             .activeNotifications
@@ -56,7 +58,12 @@ class ReplyReceiver : BroadcastReceiver() {
                 }
             }
             cancelAfter -> NotifSender.cancelById(context, key)
-            else -> NotifSender.appendOwnReply(context, key, text)
+            // The fallback, and the only branch that puts something back. Off
+            // means nothing on this side touches the shade after a reply, so
+            // whatever changes there is the reading app's doing and nobody
+            // else's.
+            echoOwn -> NotifSender.appendOwnReply(context, key, text)
+            else -> EventLog.add("notification left exactly as it was")
         }
     }
 }
