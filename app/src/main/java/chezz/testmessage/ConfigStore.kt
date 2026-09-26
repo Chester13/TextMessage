@@ -8,7 +8,7 @@ import android.content.Intent
  *
  * Driving the app from adb only becomes useful if the command line stays short,
  * and it stays short by inheriting whatever was last set on screen. So the panel
- * saves its state when it goes away, and a command overrides only what it names.
+ * saves its state whenever it changes, and a command overrides only what it names.
  */
 object ConfigStore {
 

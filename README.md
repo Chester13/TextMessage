@@ -103,8 +103,8 @@ $BC chezz.testmessage.RESET                         # reset every conversation
 ```
 
 Everything not named on the command line comes from whatever the control panel
-last had on screen, saved when it goes to the background. So set the switches
-once, leave the app, and drive it from the shell.
+has on screen, saved the moment it changes. So set the switches once and drive
+it from the shell — leaving the app first is not needed.
 
 Overrides: `sender`, `group` (empty string means "not a group"), `title`, `text`
 as strings; `backdate` and `count` as `--ei`; `large_icon`, `person_icon` and

@@ -7,7 +7,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
@@ -101,6 +104,36 @@ class MainActivity : Activity() {
             NotifSender.KeyShape.entries.map { it.label }
         )
 
+        // Every change is saved as it is made, not only when the screen goes away. A
+        // broadcast sent while the panel was still up used to inherit whatever it held
+        // when it was last left, so a switch just flipped seemed to do nothing — or did,
+        // depending on whether the screen had been left in between.
+        val save = { ConfigStore.save(applicationContext, readConfig(bumpCounter = false)) }
+        for (box in listOf(
+            cbAutonumber, cbLargeIcon, cbPersonIcon, cbOmitIcon, cbContentIntent, cbAutoCancel,
+            cbReply, cbCancelAfterReply, cbRebuildAfterReply, cbEchoOwnReply, cbBumpTime,
+            cbGroupSummary, cbNewIdOnRepost,
+        )) {
+            box.setOnCheckedChangeListener { _, _ -> save() }
+        }
+        val saveOnEdit = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) = save()
+        }
+        // Not the delay: it only schedules the panel's own delayed re-post
+        for (field in listOf(
+            etSender, etGroup, etTitle, etMessage, etBackdate, etAlbumSize, etRebuildGap, etNotifGroup,
+        )) {
+            field.addTextChangedListener(saveOnEdit)
+        }
+        val saveOnPick = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = save()
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+        spCreatorBal.onItemSelectedListener = saveOnPick
+        spKeyShape.onItemSelectedListener = saveOnPick
+
         NotifSender.ensureChannel(this)
         requestNotificationPermission()
 
@@ -152,8 +185,9 @@ class MainActivity : Activity() {
     override fun onPause() {
         super.onPause()
         EventLog.onChanged = null
-        // Saved here so a broadcast issued after leaving this screen inherits
-        // whatever was set on it.
+        // Saved here as well, for what changes without a control being touched — the
+        // auto-number a post from this screen advanced — so a broadcast issued after
+        // leaving this screen inherits whatever was set on it.
         ConfigStore.save(applicationContext, readConfig(bumpCounter = false))
     }
 
